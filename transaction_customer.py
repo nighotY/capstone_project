@@ -1,21 +1,15 @@
+#import required libraries
 import findspark
 findspark.init()
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from dotenv import load_dotenv
 import os
 import pandas as pd
 import re
 import requests
 import mysql.connector as mariadb
 
-USER="root"
-PASSWORD="password"
-
-
-#create spark session
-# spark = SparkSession.builder.master("local[*]").appName("Capstone").getOrCreate()
 
 #function to load data from database to spark dataframe
 def load_data(spark,USER,PASSWORD):
@@ -55,14 +49,10 @@ def load_data(spark,USER,PASSWORD):
         load_customer.createOrReplaceTempView("customer")
     #   return load_branch,load_credit,load_customer
 
-# load_branch,load_credit,load_customer=load_data(spark,USER,PASSWORD)
-# #create temp vew of spark dataframe
-# load_branch.createOrReplaceTempView('branch')
-# load_credit.createOrReplaceTempView("credit_card")
-# load_customer.createOrReplaceTempView("customer")
 
 #decorator to change funcionality of the print function
 def Dprint(f):
+    """decorator function to show spark datafrmae"""
     def inner(*arg,**kwarg):
         r=f(*arg,**kwarg)
         r.show()
@@ -70,7 +60,9 @@ def Dprint(f):
     return inner
 
 
+#Function to get transaction by zipcode
 def transaction_by_zipcode(spark,zipcode,year,month):
+    """transaction by zip code"""
     data= spark.sql("SELECT c.CUST_ZIP, \
                       c.FIRST_NAME, \
                       c.LAST_NAME,\
@@ -83,7 +75,10 @@ def transaction_by_zipcode(spark,zipcode,year,month):
                       ORDER BY day(to_date(TIMEID,'yyyyMMdd')) DESC".format(zipcode,year,month))
     return data
 
+
+#function to get zipcode user input
 def input_zipcode():
+    """user zip code input. Returns valid zipcode"""
     while True:
         zipcode=input("Enter zipcode using 4-5 digits :: ")
         zipcode=zipcode.strip()
@@ -95,8 +90,9 @@ def input_zipcode():
     return zipcode
 
 
- #year input  
-def input_year():     
+#year input  
+def input_year():
+    """Year input. Returns valid year"""     
     while True:
         year=input("Enter year using 4 digits :: ")
         year=year.strip()
@@ -108,6 +104,7 @@ def input_year():
 
 #month input
 def input_month():
+    """returns valid month"""
     while True:
         month=input("Enter month using 2 digits (example: March enter 03):: ")
         month=month.strip().lstrip('0')
@@ -120,6 +117,7 @@ def input_month():
             print("\n Invalid month entry...Try again ..")
     return month
 
+#function to get zipcode,year and month from user
 def tran1_input():
     #zipcode input
     zipcode=input_zipcode()
@@ -128,8 +126,11 @@ def tran1_input():
     #month input
     month=input_month()
     return zipcode,year,month
+
+
 @Dprint
 def tranasaction_by_zip(spark):
+      """Transaction by zipcode. returns sparkdata frame to decorator function"""
       #calling function tran1_input() to get user input for zipcode, year and month.
       #the return value of function is valid user input zipcode,year,month
       zipcode,year,month=tran1_input()
@@ -138,16 +139,19 @@ def tranasaction_by_zip(spark):
       tras_zip=transaction_by_zipcode(spark,zipcode,year,month)
       tras_zip=tras_zip.withColumn('CUST_SSN',concat(lit('XXXXX'),substring(col('CUST_SSN'),6,4)))
       tras_zip=tras_zip.withColumn('CUST_CC_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CUST_CC_NO'),8,12))).drop(col('CUST_SSN'))
+      tras_zip=tras_zip.withColumn('TIMEID',concat(substring(col('TIMEID'),1,4),lit("-"),substring(col('TIMEID'),5,2),lit("-"),\
+                                                   substring(col('TIMEID'),7,2)))
       return tras_zip
 
-# tranasaction_by_zip()
 
+#Function 
 @Dprint
 def tran_no_total_by(spark,tr_type):
     return spark.sql("SELECT TRANSACTION_TYPE, COUNT(TRANSACTION_ID) AS NUM_OF_TRANSACTION, \
                         SUM(TRANSACTION_VALUE) AS TOTAL_TRAN_VALUES FROM credit_card\
                         WHERE TRANSACTION_TYPE='{}'\
                         GROUP BY TRANSACTION_TYPE".format(tr_type))
+
 
 #funtion to get user input for transaction type
 def tran2_input(spark):
@@ -165,13 +169,18 @@ def tran2_input(spark):
         else:
             print("\nEntered Transaction type not found.. Try again..")
     return tr_type
+
+
+#Function to get transaction values by transaction type
 def Transaction_by_type(spark):
       tr_type=tran2_input(spark)
       tran_no_total_by(spark,tr_type)
 
+
 # function display the number and total values of transactions for branches in a given state.
 @Dprint
 def tran_no_total_byst(spark,state):
+    """Transaction total by state. Returns spark dataframe"""
     return spark.sql("SELECT cc.BRANCH_CODE AS BRANCH_CODE, \
                             COUNT(cc.TRANSACTION_ID) AS NO_TRANSACTION, \
                             SUM(TRANSACTION_VALUE) AS TOTAL_VALUE \
@@ -181,12 +190,14 @@ def tran_no_total_byst(spark,state):
                             GROUP BY cc.BRANCH_CODE\
                             ORDER BY cc.BRANCH_CODE".format(state))
 
+
 #function to get user input for state.
 def tran3_input(spark):
+    """Getting user input"""
     tr_state=spark.sql("SELECT DISTINCT(BRANCH_STATE) AS STATES FROM branch")
     tr_state= tr_state.toPandas()
     tr_state_list=pd.unique(tr_state['STATES'])
-    print("Available Transaction States ::\n {}".format(tr_state_list))
+    print("Available Transaction States ::\n{}".format(tr_state_list))
     while True:
         state=input("\n Enter State using 2 letters as shown in above list:: ")
         state=state.strip()
@@ -200,6 +211,7 @@ def tran3_input(spark):
             print("\nInvalid entry...Try again..")
     return state
 
+#funcionn call to input for transaction by state
 def transaction_by_state(spark):
       #calling using input. return type of this function is valid available state
       state=tran3_input(spark)
@@ -208,8 +220,10 @@ def transaction_by_state(spark):
       tran_no_total_byst(spark,state)
 
 
+#function to get customer details by using credit card
 @Dprint
 def cust_details_bycc(spark,name,lastname,cc_number,phone):
+    """to get customer details using credit card. using spark query"""
     data= spark.sql("SELECT * FROM CUSTOMER \
                WHERE FIRST_NAME='{}'  AND LAST_NAME='{}' \
                      AND CREDIT_CARD_NO = '{}'\
@@ -217,6 +231,7 @@ def cust_details_bycc(spark,name,lastname,cc_number,phone):
                     .format(name,lastname,cc_number,phone))
     data=data.withColumn('SSN',concat(lit('XXXXX'),substring(col('SSN'),6,4)))
     return data
+
 
 #function to check the existing account details of a customer by ssn, first name and last name
 @Dprint
@@ -226,6 +241,7 @@ def cust_details_byssn(spark,ssn,name,lastname):
                     .format(ssn,name,lastname))
     data=data.withColumn('SSN',concat(lit('XXXXX'),substring(col('SSN'),6,4)))
     return data
+
 
 #ssn input
 def input_ssn():
@@ -239,6 +255,7 @@ def input_ssn():
                print("Invalid ssn.. Try again ..")
      return ssn
 
+
 #function to get credit card number user input
 def input_cc():
     while True:
@@ -248,6 +265,7 @@ def input_cc():
         else:
             print("invalid input  ..Try again ..")
     return cc_number
+
 
 # phone number input
 def input_phone_no():
@@ -261,7 +279,10 @@ def input_phone_no():
      # phone="("+phone[0:3]+')'+phone[3:6]+'-'+phone[6:10]
      return phone
 
+
+#name input
 def input_name(tp):
+      """name input"""
       while True:
             name = input("Enter {} Name :: ".format(tp))
             name=name.strip()
@@ -301,11 +322,13 @@ def cust1_details(spark):
           phone=input_phone_no()                              
           cust_details_bycc(spark,name,last_name,cc_number,phone)
 
+
 #function to get custmer credit transaction details using credit card number
 @Dprint
 def get_cc(spark,cc_number):
     return spark.sql("SELECT * FROM credit_card \
               WHERE CUST_CC_NO = '{}'".format(cc_number))
+
 
 #function to get credit card yearly transaction details 
 @Dprint 
@@ -313,6 +336,7 @@ def get_cc_yr(spark,cc_number,year):
     return spark.sql("SELECT * FROM credit_card \
               WHERE CUST_CC_NO = '{}' AND YEAR(to_date(TIMEID,'yyyyMMdd')) = '{}' \
               ORDER BY MONTH(to_date(TIMEID,'yyyyMMdd')) DESC".format(cc_number,year))
+
 
 #function to get credit card monthly transaction details 
 @Dprint
@@ -324,6 +348,8 @@ def get_cc_mon(spark,cc_number,year,mon):
     data = data.drop(col('CUST_SSN'))
     return data
 
+
+#function to get monthly expenses
 @Dprint
 def monthly_exp(spark,cc_number,month,yr):
     return spark.sql("SELECT SUM(TRANSACTION_VALUE) AS MONTHLY_BILL,cc.TRANSACTION_TYPE FROM credit_card cc\
@@ -331,6 +357,7 @@ def monthly_exp(spark,cc_number,month,yr):
            WHERE cc.CUST_CC_NO = '{}' AND MONTH(to_date(TIMEID,'yyyyMMdd')) = '{}' \
            AND YEAR(to_date(TIMEID,'yyyyMMdd'))='{}'\
            GROUP BY cc.TRANSACTION_TYPE".format(cc_number,month,yr))
+
 
 @Dprint
 #function used to generate a monthly bill for a credit card number for a given month and year.
@@ -341,6 +368,8 @@ def monthly_bill(spark,cc_number,month,yr):
                     AND YEAR(to_date(TIMEID,'yyyyMMdd'))='{}'\
                     GROUP BY cc.CUST_CC_NO".format(cc_number,month,yr))
 
+
+#function to generate monthly bill
 def generate_monthly_bill(spark):
     #generate monthly bill
       print("Enter credit card number :: ")
@@ -353,9 +382,8 @@ def generate_monthly_bill(spark):
       print("Monthly bill :: ")
       monthly_bill(spark,cc_number,month,year)
 
-# function to display the transactions made by a customer between two dates. Order by year, month, and day in descending order.
 
-# def transaction_bet(ssn,date1,date2):
+# function to display the transactions made by a customer between two dates. Order by year, month, and day in descending order.
 @Dprint
 def tran_bet_two_date(spark,cc_number,date1,date2):
     data= spark.sql("SELECT * FROM credit_card \
@@ -371,7 +399,7 @@ def tran_bet_two_date(spark,cc_number,date1,date2):
     return data
     
 
-
+#function to get day input
 def input_day():
      #month input
     while True:
@@ -386,6 +414,7 @@ def input_day():
             print("\n Invalid month entry...Try again :")
     return day
 
+
 #function to get date input from user
 def input_date():
     year=input_year()
@@ -394,6 +423,7 @@ def input_date():
     return year+month.zfill(2)+day.zfill(2)
 
 
+#the transactions made by a customer between two dates. Order by year, month, and day in descending order
 def cust_two_dates(spark):
       #the transactions made by a customer between two dates. Order by year, month, and day in descending order
       print("Enter credit card number :: ")
@@ -406,10 +436,13 @@ def cust_two_dates(spark):
       print(date2)
       tran_bet_two_date(spark,cc_number,date1,date2)
 
+
+#function to disply API endpoint response code
 def api_status():
     url="https://raw.githubusercontent.com/platformps/LoanDataset/main/loan_data.json"
     response=requests.get(url)
     print("API endpoint status code :-->>  {}".format(response.status_code))
+
 
 #get the addres details from the customer
 def input_address():
@@ -463,8 +496,9 @@ def input_address():
             
     return address
 
+
 #update customer details in the RDBMS Table
-def modify_cust_details():
+def modify_cust_details(USER,PASSWORD):
     try:        
         con = mariadb.connect(host = "127.0.0.1", 
         port = 3308,

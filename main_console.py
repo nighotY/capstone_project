@@ -3,24 +3,26 @@ findspark.init()
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 import os
 import etl as et
 import transaction_customer as tc
+import data_visualisation as dv
+from decouple import config
 
-USER="root"
-PASSWORD="password"
 
+#set the user and password of the RDBMS
+USER=config('user')
+PASSWORD=config('password')
+
+
+#start the sparkSession
 spark = SparkSession.builder.master("local[*]").appName("Capstone").getOrCreate()
 
 
-# customer_df,branch_df,credit_df=et.extract()
-# transform_customer_df,transform_branch_df,transform_credit_df=et.transform(customer_df,branch_df,credit_df)
-# et.branch_load(transform_branch_df,"capstone","CDW_SAPP_BRANCH",USER,PASSWORD)
-# et.credit_load(transform_credit_df,"capstone","CDW_SAPP_CREDIT_CARD",USER,PASSWORD)
-# et.customer_load(transform_customer_df,"capstone","CDW_SAPP_CUSTOMER",USER,PASSWORD)
-
+#main menu
 def mainmenu():
+    """Display main menu, return user selection"""
     print("\n============================== Main Menu ===================================")
     print("\nPlease, Select From the Following Option ::")
     print("\n1. - ETL Process ")
@@ -32,12 +34,15 @@ def mainmenu():
     choice=int(input("\nEnter Selection:: "))
     return choice
 
+
+#main manu selection-tree
 def m_main_tree(mchoice):
+    """main menu selection tree"""
     while mchoice!=0:
         match mchoice:
             case 1:
                 print("ETL")
-                et.etl(spark)
+                et.etl(spark,USER,PASSWORD)
                 tc.load_data(spark,USER,PASSWORD)                      
                 mchoice=mainmenu()
             case 2:
@@ -62,7 +67,10 @@ def m_main_tree(mchoice):
                 print("Invalid choice, Please Select valid choice again...")
                 mchoice=mainmenu()
 
+
+#transactions menu
 def trans_menu():
+    """Transaction menu. Return user selection"""
     print("\n==============================Transaction Menu======================================")
     print("\nPlease, Select From the Following Option ::")
     print("\n1. Transactions made by customers living in a given zip code for a given month and year : ")
@@ -72,7 +80,10 @@ def trans_menu():
     choice=int(input("\nEnter selection :: "))
     return choice
 
+
+#transactions selction tree
 def tran_tree(tchoice):
+    """Transaction menu selection tree"""
     while tchoice !=0:
         match tchoice:
             case 1:
@@ -84,7 +95,7 @@ def tran_tree(tchoice):
                 tc.Transaction_by_type(spark)
                 tchoice=trans_menu()
             case 3:
-                print("\n=== Number and total values of transactions for branches in a given state ===")
+                print("\n=== Number and total values of transactions for branches in a given state ===\n")
                 tc.transaction_by_state(spark)
                 tchoice=trans_menu()
             case 0:
@@ -93,7 +104,10 @@ def tran_tree(tchoice):
                 print("Invalid choice.... Try again..")
                 tchoice=trans_menu()
 
+
+#Display customer menu
 def cust_menu():
+    """Display customer menu. Return user selection"""
     print("\n ============================== Customer Menu ======================================")
     print("\nPlease, Selct From the Following Option ::")
     print("\n 1. Check the existing account details of a customer :")
@@ -104,7 +118,10 @@ def cust_menu():
     choice=int(input("\nEnter Selection :: "))
     return choice
 
+
+#customer selection tree
 def cust_tree(cchoice):
+    """customer selection tree"""
     while cchoice !=0:
         match cchoice:
             case 1:
@@ -113,7 +130,7 @@ def cust_tree(cchoice):
                 cchoice=cust_menu()
             case 2:
                 print("\n Inside cust menu 22")
-                tc.modify_cust_details()
+                tc.modify_cust_details(USER,PASSWORD)
                 cchoice=cust_menu()
             case 3:
                 print("\n===Generate a monthly bill for a credit card number for a given month and year")
@@ -129,7 +146,10 @@ def cust_tree(cchoice):
                 print("\n Invalid Choice..PLease select again..")
                 cchoice=cust_menu()
 
+
+#Display visualization menu
 def viz_menu():
+    """Display visualizaion menu. Return user selection"""
     print("\n ============================== Visualization Menu ======================================")
     print("\n\n Please, Selct From the Following Option ::")
     print("\n 1. Which transaction type has a high rate of transactions :")
@@ -137,40 +157,45 @@ def viz_menu():
     print("\n 3. The sum of all transactions for the top 10 customers :")
     print("\n 4. Percentage of applications approved for self-employed applicants :")
     print("\n 5. percentage of rejection for married male applicants :")
-    print("\n 6. percentage of rejection for married male applicants :")
-    print("\n 7. the top three months with the largest transaction data :")
-    print("\n 8. Branch processed the highest total dollar value of healthcare transactions :")
+    print("\n 6. The top three months with the largest transaction data :")
+    print("\n 7. Branch processed the highest total dollar value of healthcare transactions :")
     print("\n 0. Return to main menu ")
     choice=int(input("\nEnter Selection :: "))
     return choice
 
 
+#visualization menu selection tree
 def vis_tree(vchoice):
+    """visualization tree"""
     while vchoice!=0:
         match vchoice:
             case 1:
-                print("Graph 1")
+                print("Graph 1 : Which transaction type has a high rate of transactions  ")
+                dv.plot_tran_per_category(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 2:
-                print("Graph 2")
+                print("Graph 2 : Which state has a high number of customers :")
+                dv.plot_total_cust_per_state(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 3:
-                print("Graph 3")
+                print("Graph 3 : The sum of all transactions for the top 10 customers :")
+                dv.plot_top_10_cust(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 4:
-                print("Graph 4")
+                print("Graph 4 : Percentage of applications approved for self-employed applicants : ")
+                dv.plot_self_emp(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 5:
-                print("Graph 5")
+                print("Graph 5 : ")
+                dv.plot_m_m(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 6:
-                print("Graph 6")
+                print("Graph 6 : The top three months with the largest transaction data :")
+                dv.plot_top_3_mon(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 7:
-                print("Graph 7")
-                vchoice=viz_menu()
-            case 8:
-                print("Graph 8")
+                print("Graph 7 Branch processed the highest total dollar value of healthcare transactions :")
+                dv.plot_healthcare(spark,USER,PASSWORD)
                 vchoice=viz_menu()
             case 0:
                 return 0
@@ -178,6 +203,7 @@ def vis_tree(vchoice):
                 print("Invalid choice, Please Select valid choice again..")
                 vchoice=viz_menu()
 
+# if __name__=="__main":
 m_choice=mainmenu()
 print(m_choice)
 m_main_tree(m_choice)

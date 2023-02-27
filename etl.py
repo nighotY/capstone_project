@@ -1,21 +1,13 @@
+#import required libraries
 import findspark
 findspark.init()
 import pyspark
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from dotenv import load_dotenv
-import os
 import requests
 
-# load_dotenv()
-# USER=os.environ.get('user')
-# PASSWORD=os.environ.get('password')
-USER="root"
-PASSWORD="password"
 
-#create spark session
-# spark = SparkSession.builder.master("local[*]").appName("Capstone").getOrCreate()
-
+#function to extract data from sourse json file/API endpoint
 def extract(spark):
     """extracts data from target file returns extracted data as spark dataframe """
         #load/read cdw_sapp_custmer.json file into spark dataframe 
@@ -33,6 +25,7 @@ def extract(spark):
     return customer_df,branch_df,credit_df,loan_data_df
 
 
+#function to transform data as per the mapping document
 def transform(spark,customer_df,branch_df,credit_df):
     """transforms the data as per the mapping document and returns transformed dataframe"""
     #temporary table view of the custmer dataframe
@@ -74,13 +67,12 @@ def transform(spark,customer_df,branch_df,credit_df):
     #selected columns to be added into transformed dataframe
     trans_credit_df=credit_df[['CUST_CC_NO','TIMEID','CUST_SSN','BRANCH_CODE','TRANSACTION_TYPE','TRANSACTION_VALUE','TRANSACTION_ID']]
     transform_credit_df=spark.createDataFrame(trans_credit_df)
-
     print("Data successfully transformed as per the mapping document::  ..")
-
     return transform_customer_df,transform_branch_df,transform_credit_df
 
 
-def tables_exist(spark,database,tablename):
+#function to check if table is already exist in RDMBS
+def tables_exist(spark,database,tablename,USER,PASSWORD):
     """check if table already exist in target RDBMS database. returns boolean value"""
     db_table_schema=spark.read\
                         .format("jdbc")\
@@ -93,9 +85,11 @@ def tables_exist(spark,database,tablename):
     res=db_table_schema.select('TABLE_NAME')
     return tablename.lower() in res.toPandas().values
 
+
+#function to load branch data into target RDBMS table
 def branch_load(spark,transform_branch_df,dbname,tablename,USER,PASSWORD):
     """loads the sparkdataframe to target RDBMS table"""
-    if tables_exist(spark,dbname,tablename):
+    if tables_exist(spark,dbname,tablename,USER,PASSWORD):
         print("{} table Has alreay Loaded".format(tablename))
     else:
         transform_branch_df.write \
@@ -115,12 +109,13 @@ def branch_load(spark,transform_branch_df,dbname,tablename,USER,PASSWORD):
                     .save()
         print("{} Table created successfuly in RDBMS".format(tablename))
     
+
+#Function to load credit card data to target table in RDBMS        
 def credit_load(spark,transform_credit_df,dbname,tablename,USER,PASSWORD):
     """loads the sparkdataframe to target RDBMS table"""
     #check if table already exist in the database
-    if tables_exist(spark,dbname,tablename):
+    if tables_exist(spark,dbname,tablename,USER,PASSWORD):
         print("{} Table has been alreay Loaded".format(tablename))
-    
     else:
         #load creditcard data from spark dataframe into reditcard_capstone.CDW_SAPP_CREDIT_CARD table in RDBMS
         transform_credit_df.write \
@@ -141,10 +136,11 @@ def credit_load(spark,transform_credit_df,dbname,tablename,USER,PASSWORD):
         print("{} Table created successfuly in RDBMS".format(tablename))
 
 
+#Function to load customer table in target RDBMS
 def customer_load(spark,transform_customer_df,dbname,tablename,USER,PASSWORD):
     """loads the sparkdataframe to target RDBMS table"""
     #check if table already exist in the database
-    if tables_exist(spark,dbname,tablename):
+    if tables_exist(spark,dbname,tablename,USER,PASSWORD):
         print("{} Table has been alreay Loaded".format(tablename))
     else:
         #load cUSTOMER data from spark dataframe into reditcard_capstone.CDW_SAPP_CREDIT_CARD table in RDBMS
@@ -166,10 +162,12 @@ def customer_load(spark,transform_customer_df,dbname,tablename,USER,PASSWORD):
                     .save()
         print("{} Table created successfuly in RDBMS".format(tablename))
 
+
+#Function to load loan data to target table in RDBMS
 def loan_load(spark,loan_data_df,dbname,tablename,USER,PASSWORD):
     """loads the sparkdataframe to target RDBMS table"""
     #check if table already exist in the database
-    if tables_exist(spark,dbname,tablename):
+    if tables_exist(spark,dbname,tablename,USER,PASSWORD):
         print("{} Table has been alreay Loaded".format(tablename))
     #load Loan data from spark dataframe into CDW_SAPP_loan_application table in traget RDBMS 
     else:
@@ -188,7 +186,9 @@ def loan_load(spark,loan_data_df,dbname,tablename,USER,PASSWORD):
         print("{} Table created successfuly in RDBMS".format(tablename))
 
 
-def etl(spark):
+#function to initiate ETL process
+def etl(spark,USER,PASSWORD):
+    """ Function to intiate ETL process """
     customer_df,branch_df,credit_df,loan_data_df=extract(spark)
     transform_customer_df,transform_branch_df,transform_credit_df=transform(spark,customer_df,branch_df,credit_df)
     branch_load(spark,transform_branch_df,"creditcard_capstone","CDW_SAPP_BRANCH",USER,PASSWORD)
