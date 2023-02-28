@@ -6,13 +6,13 @@
 #### * Req-1.1   
                Data Extraction and Transformation with Python and 
                PySpark
-               a) For “Credit Card System,” create a Python and PySpark SQL program to read/extract the following 
-                  JSON files according to the specifications found in the mapping document. 
+               a) For “Credit Card System,” create a Python and PySpark SQL program to read/extract
+                  the following JSON files according to the specifications found in the mapping document. 
                    1. CDW_SAPP_BRANCH.JSON
                    2. CDW_SAPP_CREDITCARD.JSON
                    3. CDW_SAPP_CUSTOMER.JSON
-               b) Once PySpark reads data from JSON files, and then utilizes Python, PySpark, and Python modules 
-                  to load data into RDBMS(SQL), perform the following:
+               b) Once PySpark reads data from JSON files, and then utilizes Python, PySpark, and 
+                  Python modules to load data into RDBMS(SQL), perform the following:
                   b 1)Create a Database in SQL(MariaDB), named “creditcard_capstone.”
                   b 2) Create a Python and Pyspark Program to load/write the “Credit Card System Data” into 
                        RDBMS(creditcard_capstone).Tables should be created by the following names in RDBMS:
@@ -28,10 +28,11 @@ front-end (console) to see/display data. For that, create a console-based Python
 Requirements 2 (2.1 and 2.2).                                               
 #### * Req-2.1 
               Transaction Details Module :
-              1)    Used to display the transactions made by customers living in a given zip code for a given month
-                    and year.Order by day in descending order.
+              1)    Used to display the transactions made by customers living in a given zip code for
+                    a given month and year.Order by day in descending order.
               2)    Used to display the number and total values of transactions for a given type.
-              3)    Used to display the total number and total values of transactions for branches in a given state.
+              3)    Used to display the total number and total values of transactions for branches
+                    in a given state.
 #### * Req-2.2
               1)    Used to check the existing account details of a customer.
               2)    Used to modify the existing account details of a customer.
