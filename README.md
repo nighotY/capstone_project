@@ -2,7 +2,7 @@
 ## PER SCHOLAS(Data Engineering) Capstone Project
 ### Credit Card Dataset Overview:
 The Credit Card System database is an independent system developed for managing activities such as registering \
-new customers and \pproving or canceling requests, etc., using the architecture.A credit card is issued to users \
+new customers and approving or canceling requests, etc., using the architecture.A credit card is issued to users \
 to enact the payment system. It allows the cardholder to access financial services in exchange for the holder's \
 promise to pay for them later. \
 Below are three files that contain the customer’s transaction information and inventories in the credit \
@@ -52,13 +52,13 @@ console-based Python program to satisfy System Requirements 2 (2.1 and 2.2).
               4)    Display the transactions made by a customer between two dates. Order by year, 
                     month, and day in descending order.
 #### Action/challanges Req 2)
-Data extracted from RDBMS tables and loaded in to pyspark dataframe. And used sql quries to Analyse data. \
-Implemented console based menu driven program. The tools were  used Pyspark dataframe, SPARK sql, regex  \
+Data extracted from RDBMS tables and loaded in to pyspark dataframe. Used sql quries to Analyse data. \
+Implemented console based menu driven program. The tools were used Pyspark dataframe, SPARK sql, regex  \
 for user input validation, Numpy and mysql-connector.The challange faced while implementing req 2.1 & 2.2 was  \
 for req 2.2) option 2) Modify the existing account details. The Pyspark sql Doesn't have the option/support \
 to modify records in RDBMS table. So used mysql-connector to modify records in RDBMS. But had dificulty \
 connecting to 'utf8mb3' databases using mysql-connector. So after reseach found out that mysql-connector8.0.30 has \
-issues while connecting with 'utf8' Database. so insted used the mysql-connector 8.0.29.
+issues while connecting with 'utf8' Database. so instead used the mysql-connector 8.0.29.
 #### 3. Functional Requirements - Data analysis and Visualization.    
 After data is loaded into the database, users can make changes from the front end, and they can also  view data  from the \
 front end. Now, the business analyst team wants to analyze and visualize the data according to the below requirements. 
