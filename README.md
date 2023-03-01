@@ -126,7 +126,9 @@ c)    Find and plot the top three months with the largest transaction data.
       d)      Find and plot which branch processed the highest total dollar value of healthcare
               transactions.                 
 ![Screenshot_20230227_115104](https://user-images.githubusercontent.com/118306654/221758971-c1afc0f3-23d0-4cc1-a1f8-153a74b2d843.png)
-#### Tableau dashboard link: https://public.tableau.com/app/profile/yogi8280/viz/transactionTrends1/Dashboard1
+#### Tableau Dashboard links: 
+* 1) https://public.tableau.com/app/profile/yogi8280/viz/transactionTrends1/Dashboard1
+* 2) https://public.tableau.com/app/profile/yogi8280/viz/LoanApprovalAnalysis_16777003598220/Dashboard1?publish=yes
 ####  Prerequisites:
 Software required to run the project. Install:
 * 1 Pyspark
