@@ -9,6 +9,7 @@ import pandas as pd
 import re
 import requests
 import mysql.connector as mariadb
+import datetime
 
 
 #function to load data from database to spark dataframe
@@ -138,9 +139,11 @@ def tranasaction_by_zip(spark):
                 \nOutput Order by day in descending order\n".format(zipcode,year,month))   
       tras_zip=transaction_by_zipcode(spark,zipcode,year,month)
       tras_zip=tras_zip.withColumn('CUST_SSN',concat(lit('XXXXX'),substring(col('CUST_SSN'),6,4)))
-      tras_zip=tras_zip.withColumn('CUST_CC_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CUST_CC_NO'),8,12))).drop(col('CUST_SSN'))
+      tras_zip=tras_zip.withColumn('CUST_CC_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CUST_CC_NO'),12,4))).drop(col('CUST_SSN'))
       tras_zip=tras_zip.withColumn('TIMEID',concat(substring(col('TIMEID'),1,4),lit("-"),substring(col('TIMEID'),5,2),lit("-"),\
                                                    substring(col('TIMEID'),7,2)))
+      if tras_zip.isEmpty():
+          print("No data found for given input...")
       return tras_zip
 
 
@@ -182,7 +185,7 @@ def Transaction_by_type(spark):
 def tran_no_total_byst(spark,state):
     """Transaction total by state. Returns spark dataframe"""
     return spark.sql("SELECT cc.BRANCH_CODE AS BRANCH_CODE, \
-                            COUNT(cc.TRANSACTION_ID) AS NO_TRANSACTION, \
+                            COUNT(cc.TRANSACTION_ID) AS NO_OF_TRANSACTIONS, \
                             SUM(TRANSACTION_VALUE) AS TOTAL_VALUE \
                             FROM customer C \
                             LEFT JOIN credit_card cc on C.SSN = cc.CUST_SSN \
@@ -197,13 +200,13 @@ def tran3_input(spark):
     tr_state=spark.sql("SELECT DISTINCT(BRANCH_STATE) AS STATES FROM branch")
     tr_state= tr_state.toPandas()
     tr_state_list=pd.unique(tr_state['STATES'])
-    print("Available Transaction States ::\n{}".format(tr_state_list))
+    print("Available transaction States for reference::\n{}".format(tr_state_list))
     while True:
-        state=input("\n Enter State using 2 letters as shown in above list:: ")
+        state=input("\nEnter State using 2 letters as shown in above reference list:: ")
         state=state.strip()
         if state.isalpha() and len(state) == 2:
             if state.upper() in tr_state_list:
-                print("\nEntry is available for the entered state '{}' ::".format(state.upper()))
+                print("\nNumber and total value of transactions for branches in '{}' ::".format(state.upper()))
                 break
             else:
                 print("\nState is not found in list..Try again..")
@@ -230,6 +233,9 @@ def cust_details_bycc(spark,name,lastname,cc_number,phone):
                      AND CUST_PHONE = '{}' "\
                     .format(name,lastname,cc_number,phone))
     data=data.withColumn('SSN',concat(lit('XXXXX'),substring(col('SSN'),6,4)))
+    data=data.withColumn('CREDIT_CARD_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CREDIT_CARD_NO'),12,4)))
+    if data.isEmpty():
+          print("No data found for given input...")
     return data
 
 
@@ -240,6 +246,9 @@ def cust_details_byssn(spark,ssn,name,lastname):
                WHERE SSN = '{}' AND FIRST_NAME='{}' AND LAST_NAME='{}'" \
                     .format(ssn,name,lastname))
     data=data.withColumn('SSN',concat(lit('XXXXX'),substring(col('SSN'),6,4)))
+    data=data.withColumn('CREDIT_CARD_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CREDIT_CARD_NO'),12,4)))
+    if data.isEmpty():
+          print("No data found for given input...")
     return data
 
 
@@ -315,7 +324,7 @@ def cust1_details(spark):
           last_name=input_name("Last")
           cust_details_byssn(spark,ssn,name,last_name)
      else:
-          print("===Customer account details by using Creditcard===\n")
+          print("===Customer account details by using creditcard no===\n")
           cc_number=input_cc()
           name = input_name("First ")
           last_name=input_name("Last ")
@@ -346,6 +355,8 @@ def get_cc_mon(spark,cc_number,year,mon):
               AND MONTH(to_date(TIMEID,'yyyyMMdd')) = '{}'"\
               .format(cc_number,year,mon))
     data = data.drop(col('CUST_SSN'))
+    if data.isEmpty():
+          print("No data found for given input...")
     return data
 
 
@@ -394,46 +405,57 @@ def tran_bet_two_date(spark,cc_number,date1,date2):
           DAY(to_date(TIMEID,'yyyyMMdd')) DESC" \
           .format(cc_number,date1,date2))
     data=data.withColumn('CUST_SSN',concat(lit('XXXXX'),substring(col('CUST_SSN'),6,4)))
-    data=data.withColumn('CUST_CC_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CUST_CC_NO'),8,12))) \
+    data=data.withColumn('CUST_CC_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CUST_CC_NO'),12,4))) \
              .drop('SSN','CREDIT_CARD_NO','CUST_SSN','CUST_PHONE','CUST_EMAIL','LAST_UPDATED','CUST_COUNTRY')
+    data=data.withColumn('TIMEID',concat(substring(col('TIMEID'),1,4),lit("-"),substring(col('TIMEID'),5,2),lit("-"),\
+                                                   substring(col('TIMEID'),7,2)))
+    if data.isEmpty():
+          print("No data found for given input...")
     return data
     
 
-#function to get day input
-def input_day():
-     #month input
+#function to get user date input
+def input_date(tp):
+    """returns valid date in'yyyy/mm/dd format'"""
     while True:
-        day=input("Enter day using 2 digits :(ex 01-31):: ")
-        day=day.strip()
-        if day.isdigit() and len(day) == 2:
-            if int(day) in range (1,32):
+        input_date=input("Enter the '{}' date in 'yyyy/mm/dd' format :: ".format(tp))
+        pattern=re.compile(r"^(\d{4}\/\d{2}\/\d{2})$")
+        if pattern.match(input_date):
+            year,month,day=input_date.split('/')
+            isvaliddate=True
+            try:
+                datetime.datetime(int(year),int(month),int(day))
+            except ValueError:
+                isvaliddate=False
+            if(isvaliddate):
                 break
             else:
-                print("\n Invalid month entry...Try again :")
+                ("print invalid date")
         else:
-            print("\n Invalid month entry...Try again :")
-    return day
+            print("Invalid date...Try again..")
+    return "".join(input_date.split("/"))
 
 
-#function to get date input from user
-def input_date():
-    year=input_year()
-    month=input_month()
-    day=input_day()
-    return year+month.zfill(2)+day.zfill(2)
+#function to get start and end date
+def input_dates():
+    while True:
+        """returns valid start and end date"""
+        date1=input_date("Start")
+        date2=input_date("End")
+        if int(date1)-int(date2) < 0:
+            print("valid dates")
+            break
+        else:
+            print("Improper Start and End Dates try again....")
+    return date1,date2
 
 
-#the transactions made by a customer between two dates. Order by year, month, and day in descending order
+# the transactions made by a customer between two dates. Order by year, month, and day in descending order
 def cust_two_dates(spark):
       #the transactions made by a customer between two dates. Order by year, month, and day in descending order
       print("Enter credit card number :: ")
       cc_number=input_cc()
-      print("Enter Start Date..")
-      date1=input_date()
-      print(date1)
-      print("Enter End Date..")
-      date2=input_date()
-      print(date2)
+      date1,date2=input_dates()
       tran_bet_two_date(spark,cc_number,date1,date2)
 
 
@@ -446,6 +468,7 @@ def api_status():
 
 #get the addres details from the customer
 def input_address():
+    print("\nNew Enter Address")
     print("Enter appartment Number")
     address={}
     while True:
@@ -498,7 +521,7 @@ def input_address():
 
 
 #update customer details in the RDBMS Table
-def modify_cust_details(USER,PASSWORD):
+def modify_cust_details(spark,USER,PASSWORD):
     try:        
         con = mariadb.connect(host = "127.0.0.1", 
         port = 3308,
@@ -507,9 +530,8 @@ def modify_cust_details(USER,PASSWORD):
         database="creditcard_capstone")
     except Exception as e:
         print(e)
-    print("Connected to bd")
     db_cursor=con.cursor()
-    print("Please Enter the SSN No Of The Customer You Wish to Modify :: ")
+    print("\nPlease Enter the SSN No Of The Customer You Wish to Modify :: ")
     ssn=input_ssn()
     name=input_name("First")
     last_name=input_name("Last")
@@ -546,6 +568,7 @@ def modify_cust_details(USER,PASSWORD):
         finally:
             db_cursor.close()
             con.close()
+            load_data(spark,USER,PASSWORD)
 
 
 

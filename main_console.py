@@ -23,7 +23,8 @@ spark = SparkSession.builder.master("local[*]").appName("Capstone").getOrCreate(
 #main menu
 def mainmenu():
     """Display main menu, return user selection"""
-    print("\n============================== Main Menu ===================================")
+    print("\n=====================================Main Menu ===========================================")
+    print("\n==If you are running module for the first time Please select option 1 first : ETL process==")
     print("\nPlease, Select From the Following Option ::")
     print("\n1. - ETL Process ")
     print("\n2. - View Transactions Details ")
@@ -71,7 +72,7 @@ def m_main_tree(mchoice):
 #transactions menu
 def trans_menu():
     """Transaction menu. Return user selection"""
-    print("\n==============================Transaction Menu======================================")
+    print("\n=====================================Transaction Menu=====================================")
     print("\nPlease, Select From the Following Option ::")
     print("\n1. Transactions made by customers living in a given zip code for a given month and year : ")
     print("\n2. Number and total values of transactions for a given type")
@@ -130,7 +131,7 @@ def cust_tree(cchoice):
                 cchoice=cust_menu()
             case 2:
                 print("\n Inside cust menu 22")
-                tc.modify_cust_details(USER,PASSWORD)
+                tc.modify_cust_details(spark,USER,PASSWORD)
                 cchoice=cust_menu()
             case 3:
                 print("\n===Generate a monthly bill for a credit card number for a given month and year")

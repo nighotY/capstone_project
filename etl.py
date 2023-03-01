@@ -189,11 +189,17 @@ def loan_load(spark,loan_data_df,dbname,tablename,USER,PASSWORD):
 #function to initiate ETL process
 def etl(spark,USER,PASSWORD):
     """ Function to intiate ETL process """
-    customer_df,branch_df,credit_df,loan_data_df=extract(spark)
-    transform_customer_df,transform_branch_df,transform_credit_df=transform(spark,customer_df,branch_df,credit_df)
-    branch_load(spark,transform_branch_df,"creditcard_capstone","CDW_SAPP_BRANCH",USER,PASSWORD)
-    credit_load(spark,transform_credit_df,"creditcard_capstone","CDW_SAPP_CREDIT_CARD",USER,PASSWORD)
-    customer_load(spark,transform_customer_df,"creditcard_capstone","CDW_SAPP_CUSTOMER",USER,PASSWORD)
-    loan_load(spark,loan_data_df,"creditcard_capstone","CDW_SAPP_loan_application",USER,PASSWORD)
+    if tables_exist(spark,"creditcard_capstone","CDW_SAPP_BRANCH",USER,PASSWORD) and \
+        tables_exist(spark,"creditcard_capstone","CDW_SAPP_CREDIT_CARD",USER,PASSWORD) and \
+        tables_exist(spark,"creditcard_capstone","CDW_SAPP_CUSTOMER",USER,PASSWORD) and \
+        tables_exist(spark,"creditcard_capstone","CDW_SAPP_loan_application",USER,PASSWORD):
+        print("All tables have been loaded in RDBMS already")
+    else:
+        customer_df,branch_df,credit_df,loan_data_df=extract(spark)
+        transform_customer_df,transform_branch_df,transform_credit_df=transform(spark,customer_df,branch_df,credit_df)
+        branch_load(spark,transform_branch_df,"creditcard_capstone","CDW_SAPP_BRANCH",USER,PASSWORD)
+        credit_load(spark,transform_credit_df,"creditcard_capstone","CDW_SAPP_CREDIT_CARD",USER,PASSWORD)
+        customer_load(spark,transform_customer_df,"creditcard_capstone","CDW_SAPP_CUSTOMER",USER,PASSWORD)
+        loan_load(spark,loan_data_df,"creditcard_capstone","CDW_SAPP_loan_application",USER,PASSWORD)
     
 
