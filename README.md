@@ -2,7 +2,7 @@
 ## PER SCHOLAS(Data Engineering) Capstone Project
 ### Credit Card Dataset Overview:
 The Credit Card System database is an independent system developed for managing activities such as registering \
-new customers and approving or canceling requests, etc., using the architecture.A credit card is issued to users \
+new customers and approving or canceling requests, etc., using the architecture. A credit card is issued to users \
 to enact the payment system. It allows the cardholder to access financial services in exchange for the holder's \
 promise to pay for them later. \
 Below are three files that contain the customer’s transaction information and inventories in the credit \
@@ -15,8 +15,7 @@ c). CDW_SAPP_BRANCH.JSON: Each branch’s information and details are recorded i
 ### Business Requirements - ETL 
 #### 1. Functional Requirements - Load Credit Card Database (SQL)
 #### * Req-1.1   
-               Data Extraction and Transformation with Python and 
-               PySpark
+               Data Extraction and Transformation with Python and PySpark  
                a) For “Credit Card System,” create a Python and PySpark SQL program to read/extract
                   the following JSON files according to the specifications found in the mapping document. 
                    1. CDW_SAPP_BRANCH.JSON
@@ -32,9 +31,11 @@ c). CDW_SAPP_BRANCH.JSON: Each branch’s information and details are recorded i
                         CDW_SAPP_CUSTOMER 
                       
 #### Action/challanges Req 1) 
-Data was extracted from JSON files, transformed according to the specifications and loaded to the MariaDB dababase.    
-The tools used were Python 3, PySpark and SQL(MariaDB). One of the challenge was   \
-to finding the options to set into jdbc conncetivity to connect to the database with 'utf8mb3' format.
+Data was extracted from JSON files, transformed as per the specifications in the mapping document     
+and loaded to the MariaDB dababase.        
+The tools used were Python 3, PySpark and SQL(MariaDB). One of the challenge was     
+finding the options to be set into jdbc conectivity for connecting the database with 'utf8mb3' format.     
+Researched and figured the settings of the options -characterEncoding and useUnicode.
 #### 2. Functional Requirements - Application Front-End    
 Once data is loaded into the database, we need a front-end (console) to see/display data. For that, create a \
 console-based Python program to satisfy System Requirements 2 (2.1 and 2.2).                                               
@@ -52,13 +53,14 @@ console-based Python program to satisfy System Requirements 2 (2.1 and 2.2).
               4)    Display the transactions made by a customer between two dates. Order by year, 
                     month, and day in descending order.
 #### Action/challanges Req 2)
-Data extracted from RDBMS tables and loaded in to pyspark dataframe. Used sql quries to Analyse data. \
-Implemented console based menu driven program. The tools were used Pyspark dataframe, SPARK sql, regex  \
-for user input validation, Numpy and mysql-connector.The challange faced while implementing req 2.1 & 2.2 was  \
-for req 2.2) option 2) Modify the existing account details. The Pyspark sql Doesn't have the option/support \
-to modify records in RDBMS table. So used mysql-connector to modify records in RDBMS. But had dificulty \
-connecting to 'utf8mb3' databases using mysql-connector. So after reseach found out that mysql-connector8.0.30 has \
-issues while connecting with 'utf8' Database. so instead used the mysql-connector 8.0.29.
+Data extracted from RDBMS tables and loaded in to pyspark dataframe. Used sql queries to Analyze data.      
+Implemented console based menu driven program. Tools used were Pyspark dataframe, SPARK sql, regex       
+for user input validation, Numpy and mysql-connector.                 
+The challange faced while implementing req 2.2 was  option 2) Modify the existing account details.      
+The Pyspark sql doesn't have the option/support to modify records in RDBMS table. So used mysql-connector to       
+modify records in RDBMS but had dificulty connecting to 'utf8mb3' databases using mysql-connector. After reseach       
+found out that mysql-connector8.0.30 has issues while connecting with 'utf8' database, so instead used the    
+mysql-connectors stable version 8.0.29.
 #### 3. Functional Requirements - Data analysis and Visualization.    
 After data is loaded into the database, users can make changes from the front end, and they can also  view data  from the \
 front end. Now, the business analyst team wants to analyze and visualize the data according to the below requirements. 
