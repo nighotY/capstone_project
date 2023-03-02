@@ -63,6 +63,7 @@ def m_main_tree(mchoice):
                 vis_tree(vchoice)
                 mchoice=mainmenu()
             case 0:
+                spark.stop()
                 return 0
             case _:
                 print("Invalid choice, Please Select valid choice again...")

@@ -243,7 +243,7 @@ def cust_details_bycc(spark,name,lastname,cc_number,phone):
 @Dprint
 def cust_details_byssn(spark,ssn,name,lastname):
     data= spark.sql("SELECT * FROM CUSTOMER \
-               WHERE SSN = '{}' AND FIRST_NAME='{}' AND LAST_NAME='{}'" \
+               WHERE SUBSTRING(SSN,6,4) = '{}' AND FIRST_NAME='{}' AND LAST_NAME='{}'" \
                     .format(ssn,name,lastname))
     data=data.withColumn('SSN',concat(lit('XXXXX'),substring(col('SSN'),6,4)))
     data=data.withColumn('CREDIT_CARD_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CREDIT_CARD_NO'),12,4)))
@@ -256,9 +256,9 @@ def cust_details_byssn(spark,ssn,name,lastname):
 def input_ssn():
      while True:
           print("SSN Details")
-          ssn = input("Enter ssn for customer using 9 digits:: ")
+          ssn = input("Enter last 4 digit of ssn for customer :: ")
           ssn=ssn.replace('-','').replace(' ','')
-          if ssn.isdigit() and len(ssn) == 9:
+          if ssn.isdigit() and len(ssn) == 4:
               break
           else:
                print("Invalid ssn.. Try again ..")
@@ -354,7 +354,11 @@ def get_cc_mon(spark,cc_number,year,mon):
               WHERE CUST_CC_NO = '{}' AND YEAR(to_date(TIMEID,'yyyyMMdd')) = '{}'\
               AND MONTH(to_date(TIMEID,'yyyyMMdd')) = '{}'"\
               .format(cc_number,year,mon))
+    data=data.withColumn('CUST_CC_NO',concat(lit('XXXXXXXXXXXX'),substring(col('CUST_CC_NO'),12,4)))
+    data=data.withColumn('TIMEID',concat(substring(col('TIMEID'),1,4),lit("-"),substring(col('TIMEID'),5,2),lit("-"),\
+                                                   substring(col('TIMEID'),7,2)))
     data = data.drop(col('CUST_SSN'))
+
     if data.isEmpty():
           print("No data found for given input...")
     return data
@@ -468,7 +472,7 @@ def api_status():
 
 #get the addres details from the customer
 def input_address():
-    print("\nNew Enter Address")
+    print("\nEnter New Address")
     print("Enter appartment Number")
     address={}
     while True:
@@ -531,7 +535,7 @@ def modify_cust_details(spark,USER,PASSWORD):
     except Exception as e:
         print(e)
     db_cursor=con.cursor()
-    print("\nPlease Enter the SSN No Of The Customer You Wish to Modify :: ")
+    print("\nPlease Enter the Last 4 digit of SSN No Of The Customer You Wish to Modify :: ")
     ssn=input_ssn()
     name=input_name("First")
     last_name=input_name("Last")
@@ -540,7 +544,7 @@ def modify_cust_details(spark,USER,PASSWORD):
     # db_cursor.execute(query_alter)
     query1="SELECT FIRST_NAME,MIDDLE_NAME,LAST_NAME,CREDIT_CARD_NO,FULL_STREET_ADDRESS,CUST_CITY,\
             CUST_STATE, CUST_COUNTRY,CUST_ZIP,CUST_PHONE,CUST_EMAIL,LAST_UPDATED \
-            FROM cdw_sapp_customer WHERE SSN = '{}' and FIRST_NAME ='{}' \
+            FROM cdw_sapp_customer WHERE SUBSTRING(SSN,6,4) = '{}' and FIRST_NAME ='{}' \
             AND LAST_NAME='{}'".format(ssn,name,last_name)
     db_cursor.execute(query1)
     cr=db_cursor.fetchall()
@@ -552,7 +556,7 @@ def modify_cust_details(spark,USER,PASSWORD):
         address=input_address()
         print(address)
         update_address="UPDATE cdw_sapp_customer SET FULL_STREET_ADDRESS='{}', CUST_CITY='{}', \
-                        CUST_STATE='{}', CUST_ZIP='{}' , LAST_UPDATED=now() WHERE SSN = '{}' AND FIRST_NAME= '{}' AND LAST_NAME='{}'"\
+                        CUST_STATE='{}', CUST_ZIP='{}' , LAST_UPDATED=now() WHERE SUBSTRING(SSN,6,4) = '{}' AND FIRST_NAME= '{}' AND LAST_NAME='{}'"\
                         .format(address['FULL_STREET_ADDRESS'],address['CITY_NAME'],address['CUST_STATE'],address['CUST_ZIP']\
                                 ,ssn,name,last_name)
         try:
