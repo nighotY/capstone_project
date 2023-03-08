@@ -121,10 +121,10 @@ load data into database.
 #### Action/challanges Req 5):
 plots are as follows
 a)    Find and plot the percentage of applications approved for self-employed applicants.
-![image](https://user-images.githubusercontent.com/118306654/223779183-90cfe984-bdea-480c-98e2-7b576538afbe.png)
+![image](https://user-images.githubusercontent.com/118306654/223785329-f0c07b52-70fd-48e9-945a-ceed02e888c2.png)
 
 b)    Find the percentage of rejection for married male applicants. 
-![image](https://user-images.githubusercontent.com/118306654/223779588-bed8c780-a9d0-46db-9ede-2145a2148746.png)
+![image](https://user-images.githubusercontent.com/118306654/223784855-255861c0-7068-479a-bb9f-73093b776d73.png)
   
 c)    Find and plot the top three months with the largest transaction data.
 ![Screenshot_20230227_114940](https://user-images.githubusercontent.com/118306654/221758758-296bf3cd-b9e2-4ba1-8a51-abcfd3c6a2ec.png)
