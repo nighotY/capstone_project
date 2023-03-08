@@ -93,26 +93,30 @@ def plot_top_10_cust(spark,USER,PASSWORD):
     plt.show()
 
 
-# plot the percentage of applications approved for self-employed applicants
+# Function to plot the percentage of applications approved for self-employed applicants
 def plot_self_emp(spark,USER,PASSWORD):
     """plot the percentage of application approved for self employed"""
     loan_df=load_data_df(spark,USER,PASSWORD,"cdw_sapp_loan_application")
-    app_data=loan_df[['Application_Status','Self_Employed']]
-    emp_approval=app_data[app_data['Application_Status']=='Y'][['Self_Employed']].value_counts()
-    values=emp_approval.values.tolist()
-    status=[i[0] for i in emp_approval.index.values]
-    fig, ax = plt.subplots(figsize=(20, 5), subplot_kw=dict(aspect="equal"))
+    app_data=loan_df[['Application_Status','Self_Employed']].value_counts()
+    values=app_data.values.tolist()
+    status=[i[0] for i in app_data.index.values]
+    fig, ax = plt.subplots(figsize=(15, 8), subplot_kw=dict(aspect="equal"))
     def func(pct, allvals):
         absolute = int(np.round(pct/100.*np.sum(allvals)))
         return f"{pct:.2f}%\n({absolute:d})"
     wedges, texts, autotexts = ax.pie(values, autopct=lambda pct: func(pct, values),
-                                    textprops=dict(color="w"))
+                                    textprops=dict(color="w"),explode=(0,0,0.1,0))
+    legend_lables=['Approved Not Self-Employed','Not-Approved Not Self-Employed',\
+                   'Approved Self-Employed','Not Approved Self-Employed']
     ax.legend(wedges, status, \
-            title="Self-Employed", \
+            title="Application-Status", \
             loc="upper right", \
-            bbox_to_anchor=(1, 0, 0.5, 1))
+            bbox_to_anchor=(1, 0, 0.5, 1),labels=legend_lables)
+
     plt.setp(autotexts, size=8, weight="bold")
-    ax.set_title("Approved Loan Applications")
+
+    ax.set_title("Percentage of Application Approved for Self-Employed")
+
     plt.show()
 
 
@@ -162,17 +166,24 @@ def func(pct, allvals):
 def plot_m_m(spark,USER,PASSWORD):
     """plot percentile rejection for married men"""
     loan_df=load_data_df(spark,USER,PASSWORD,"cdw_sapp_loan_application")
-    df_mm=loan_df[(loan_df['Married'] == 'Yes') & (loan_df['Gender']=='Male')]
-    app_df_mm=df_mm['Application_Status'].value_counts()
-    values=app_df_mm.values.tolist()
-    status=['Approved','Rejected']
-    fig, ax = plt.subplots(figsize=(20, 5), subplot_kw=dict(aspect="equal"))
+    df_mm=loan_df[['Application_Status','Married','Gender']].value_counts()
+    values=df_mm.values.tolist()
+    status=['Approved Married Male','Not Approved Married Male','Approved Not Married Male',\
+            'Not Approved Not Married Male','Approved Not Married Female','Not Approved Not Married Female',\
+            'Approved Married Female','Not Approved Married Female']
+    fig, ax = plt.subplots(figsize=(15, 8), subplot_kw=dict(aspect="equal"))
+    def func(pct, allvals):
+        absolute = int(np.round(pct/100.*np.sum(allvals)))
+        return f"{pct:.2f}%\n({absolute:d})"
     wedges, texts, autotexts = ax.pie(values, autopct=lambda pct: func(pct, values),
-                                    textprops=dict(color="w"))
+                                    textprops=dict(color="w"),explode=(0,0.05,0,0,0,0,0,0))
     ax.legend(wedges, status, \
             title="Application Status", \
             loc="upper right", \
             bbox_to_anchor=(1, 0, 0.5, 1))
+
     plt.setp(autotexts, size=8, weight="bold")
-    ax.set_title("Loan Application Status for Married Men")
+
+    ax.set_title("Percentage of Rejection for Married Male Applicamts")
+
     plt.show()
