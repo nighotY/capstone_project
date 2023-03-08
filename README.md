@@ -1,4 +1,8 @@
-# capstone_project
+# capstone_project :
+This capstone project was developed at the end of 17 weeks Data Engineering Bootcamp at Per Scholas powered by TEKSystems.    
+This project implemented the following technologies to manage an ETL process for a Creditcard and Loan Application Dataset:   
+Python(Pandas, advanced modules e.g. Matplotlib), MariaDB, Apache Spark(Spark Core, Spark SQL) and Python Visualization      
+and Analytics libraries.
 ## PER SCHOLAS(Data Engineering) Capstone Project
 ### Credit Card Dataset Overview:
 The Credit Card System database is an independent system developed for managing activities such as registering \
@@ -118,10 +122,10 @@ load data into database.
 #### Action/challanges Req 5):
 plots are as follows
 a)    Find and plot the percentage of applications approved for self-employed applicants.
-![Screenshot_20230227_114846](https://user-images.githubusercontent.com/118306654/221758491-104f9205-4861-4c0b-a909-acf3216f9e7d.png)
+![image](https://user-images.githubusercontent.com/118306654/223779183-90cfe984-bdea-480c-98e2-7b576538afbe.png)
 
 b)    Find the percentage of rejection for married male applicants. 
-  ![image](https://user-images.githubusercontent.com/118306654/221752308-881a6f52-f415-4b58-b0a2-e7313daa901a.png)
+![image](https://user-images.githubusercontent.com/118306654/223779588-bed8c780-a9d0-46db-9ede-2145a2148746.png)
   
 c)    Find and plot the top three months with the largest transaction data.
 ![Screenshot_20230227_114940](https://user-images.githubusercontent.com/118306654/221758758-296bf3cd-b9e2-4ba1-8a51-abcfd3c6a2ec.png)
