@@ -115,7 +115,7 @@ def plot_self_emp(spark,USER,PASSWORD):
 
     plt.setp(autotexts, size=8, weight="bold")
 
-    ax.set_title("Percentage of Application Approved for Self-Employed")
+    ax.set_title("Percentage of Application Approved for Self-Employed Applicants")
 
     plt.show()
 
@@ -184,6 +184,6 @@ def plot_m_m(spark,USER,PASSWORD):
 
     plt.setp(autotexts, size=8, weight="bold")
 
-    ax.set_title("Percentage of Rejection for Married Male Applicamts")
+    ax.set_title("Percentage of Rejection for Married Male Applicants")
 
     plt.show()
