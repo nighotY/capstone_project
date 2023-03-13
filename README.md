@@ -1,5 +1,5 @@
 # capstone_project :
-This capstone project was developed at the end of 17 weeks Data Engineering Bootcamp at Per Scholas powered by TEKSystems.    
+This capstone project was developed at the end of 17 weeks Data Engineering Bootcamp at Per Scholas powered by TEKsystems.    
 This project implemented the following technologies to manage an ETL process for a Creditcard and Loan Application Dataset:   
 Python(Pandas, advanced modules e.g. Matplotlib), MariaDB, Apache Spark(Spark Core, Spark SQL) and Python Visualization and Analytics libraries.
 ## PER SCHOLAS(Data Engineering) Capstone Project
